@@ -13,7 +13,7 @@
 
 
 
-<title>Hello World | TT&#39;s blog</title>
+<title>Unsupervised Cross-Domain Adaptation for Response Selection Using Self-Supervised and Adversarial Training 笔记 | TT&#39;s blog</title>
 
 
 
@@ -196,7 +196,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">Hello World</h1>
+            <h1 class="post-title">Unsupervised Cross-Domain Adaptation for Response Selection Using Self-Supervised and Adversarial Training 笔记</h1>
             
                 <div class="post-meta">
                     
@@ -205,7 +205,7 @@
 
                     
                         <span class="post-time">
-                        Date: <a href="#">August 10, 2022&nbsp;&nbsp;20:55:44</a>
+                        Date: <a href="#">August 10, 2022&nbsp;&nbsp;0:51:26</a>
                         </span>
                     
                     
@@ -214,19 +214,40 @@
         </header>
 
         <div class="post-content">
-            <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+            <h1 id="💡"><a href="#💡" class="headerlink" title="💡"></a>💡</h1><p>本文最大的亮点是引入gradient reversal layer(GRL)来进行adversatial fine-tuning，但按文中使用GRL的思路和GAN还是存在不同，因为特征提取器（BERT）梯度下降的方向始终和Domain Classifier的相反，即始终朝着使得Domain Classifier分类错误的方向前进，但好的特征提取器是让Domain Classifier分辨不出特征来自的领域，而非分类错误（大部分时间分类错误说明Source Domain和Target Domain仍然是有区分度的），因此使用GRL应该需要比较谨慎地训练模型</p>
+<h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><p>将在资源丰富的对话领域上训练出的模型迁移到资源匮乏的对话领域上应用是有意义且尚待解决的问题</p>
+<h1 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h1><h2 id="Self-Supervised-Post-Training"><a href="#Self-Supervised-Post-Training" class="headerlink" title="Self-Supervised Post-Training"></a>Self-Supervised Post-Training</h2><h3 id="MLM-NSP"><a href="#MLM-NSP" class="headerlink" title="MLM+NSP"></a>MLM+NSP</h3><h3 id="Domain-Disctimination-DD"><a href="#Domain-Disctimination-DD" class="headerlink" title="Domain Disctimination(DD)"></a>Domain Disctimination(DD)</h3><ul>
+<li>判断所给出的两个句子是否来自同一领域</li>
+</ul>
+<ul>
+<li><p>二分类问题，使用交叉熵损失训练</p>
+</li>
+<li><p>文章称其“用于提升BERT的domain意识“</p>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829011242.png" style="zoom: 45%;" /></li>
+</ul>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829012108.png" style="zoom:50%;" />
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<h2 id="Adversarial-Fine-tuning"><a href="#Adversarial-Fine-tuning" class="headerlink" title="Adversarial Fine-tuning"></a>Adversarial Fine-tuning</h2><ul>
+<li><p>鼓励模型更多的关注领域无关的特征以实现跨领域的RS</p>
+</li>
+<li><p>Source Domain Response Selection(RS)</p>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829012628.png" style="zoom: 25%;" />
+</li>
+<li><p>Adversarial Domain Classifier</p>
+<ul>
+<li><p>提取[CLS]后，用一套dc参数计算Context-response pair的domain特征</p>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829013101.png" style="zoom:50%;" />
+</li>
+<li><p>而后作者使用了gradient reversal layer(GRL)来避免Source Domain RS使得模型过度拟合到Source Domain，而使用Source Domain和Target Domain的共同特征完成RS。具体而言，在正向传播时，GRL不对数据流进行改动，在反向传播时，梯度经过GRL时进行了反向，使得特征提取器(BERT)和领域分类器(Domain Classifier)形成对抗。</p>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829014208.png" style="zoom:50%;" /></li>
+</ul>
+</li>
+</ul>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829014246.png" style="zoom:50%;" />
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829014313.png" style="zoom:43%;" />
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h1 id="Analysis"><a href="#Analysis" class="headerlink" title="Analysis"></a>Analysis</h1><p>在GRL作用后，特征提取器(BERT)得到的跨领域的特征混淆在一起</p>
 
         </div>
 
@@ -241,7 +262,7 @@
                 
                     <p class="copyright-item">
                         <span>Permalink:</span>
-                        <span><a href="http://example.com/2022/08/10/hello-world/">http://example.com/2022/08/10/hello-world/</a></span>
+                        <span><a href="http://example.com/2022/08/10/Adversarial-Training-Cross-Domain-RS/">http://example.com/2022/08/10/Adversarial-Training-Cross-Domain-RS/</a></span>
                     </p>
                 
                 
@@ -264,6 +285,12 @@
                 <span>Tag(s):</span>
                 <span class="tag">
                     
+                    
+                        <a href="/tags/Response-Selection/"># Response Selection</a>
+                    
+                        <a href="/tags/Cross-Domain-Adaption/"># Cross-Domain Adaption</a>
+                    
+                        
                 </span>
             </div>
             <div>
@@ -274,8 +301,8 @@
         </section>
         <section class="post-nav">
             
+                <a class="prev" rel="prev" href="/2022/08/10/hello-world/">Hello World</a>
             
-            <a class="next" rel="next" href="/2022/08/10/Adversarial-Training-Cross-Domain-RS/">Unsupervised Cross-Domain Adaptation for Response Selection Using Self-Supervised and Adversarial Training 笔记</a>
             
         </section>
 
