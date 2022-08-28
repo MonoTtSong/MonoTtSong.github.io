@@ -214,7 +214,7 @@
         </header>
 
         <div class="post-content">
-            <h1 id="💡"><a href="#💡" class="headerlink" title="💡"></a>💡</h1><p>本文最大的亮点是引入gradient reversal layer(GRL)来进行adversatial fine-tuning，但按文中使用GRL的思路和GAN还是存在不同，因为特征提取器（BERT）梯度下降的方向始终和Domain Classifier的相反，即始终朝着使得Domain Classifier分类错误的方向前进，但好的特征提取器是让Domain Classifier分辨不出特征来自的领域，而非分类错误（大部分时间分类错误说明Source Domain和Target Domain仍然是有区分度的），因此使用GRL应该需要比较谨慎地训练模型</p>
+            <h1 id="💡"><a href="#💡" class="headerlink" title="💡"></a>💡</h1><p>本文最大的亮点是引入gradient reversal layer(GRL)来进行adversatial fine-tuning，但按文中使用GRL的思路和GAN还是存在不同，因为特征提取器（BERT）梯度下降的方向始终和Domain Classifier的相反，即始终朝着使得Domain Classifier分类错误的方向前进，但好的特征提取器是让Domain Classifier分辨不出特征来自的领域，而非分类错误（大部分时间分类错误说明Source Domain和Target Domain仍然是有区分度的），因此使用GRL应该需要比较谨慎地训练模型。</p>
 <h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><p>将在资源丰富的对话领域上训练出的模型迁移到资源匮乏的对话领域上应用是有意义且尚待解决的问题</p>
 <h1 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h1><h2 id="Self-Supervised-Post-Training"><a href="#Self-Supervised-Post-Training" class="headerlink" title="Self-Supervised Post-Training"></a>Self-Supervised Post-Training</h2><h3 id="MLM-NSP"><a href="#MLM-NSP" class="headerlink" title="MLM+NSP"></a>MLM+NSP</h3><h3 id="Domain-Disctimination-DD"><a href="#Domain-Disctimination-DD" class="headerlink" title="Domain Disctimination(DD)"></a>Domain Disctimination(DD)</h3><ul>
 <li>判断所给出的两个句子是否来自同一领域</li>
@@ -248,7 +248,7 @@
 <img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829014313.png" style="zoom:43%;" />
 
 <h1 id="Analysis"><a href="#Analysis" class="headerlink" title="Analysis"></a>Analysis</h1><p>在GRL作用后，特征提取器(BERT)得到的跨领域的特征混淆在一起</p>
-
+<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829015346.png" style="zoom:50%;" />
         </div>
 
         
