@@ -13,7 +13,7 @@
 
 
 
-<title>Learning Locality and Isotropy in Dialogue Modeling 笔记 | TT&#39;s blog</title>
+<title>Contextual Fine-to-Coarse Distillation for Coarse-grained Response Selection in Open-Domain Conversations 笔记 | TT&#39;s blog</title>
 
 
 
@@ -196,7 +196,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title">Learning Locality and Isotropy in Dialogue Modeling 笔记</h1>
+            <h1 class="post-title">Contextual Fine-to-Coarse Distillation for Coarse-grained Response Selection in Open-Domain Conversations 笔记</h1>
             
                 <div class="post-meta">
                     
@@ -205,7 +205,7 @@
 
                     
                         <span class="post-time">
-                        Date: <a href="#">August 13, 2022&nbsp;&nbsp;14:30:05</a>
+                        Date: <a href="#">August 12, 2022&nbsp;&nbsp;19:43:30</a>
                         </span>
                     
                     
@@ -215,54 +215,19 @@
 
         <div class="post-content">
             <h1 id="💡"><a href="#💡" class="headerlink" title="💡"></a>💡</h1><ul>
-<li>文章首先讨论了什么是好的dialogue文本特征分布——要同时满足Locality和Isotropy两种性质，并作了清晰的可视化说明现有的dialogue模型对对话的建模不具有这两种性质。</li>
-<li>实验结果表明，SimDRC可以明显提升生成式模型的效果，但对检索式的提升十分有限，推测主要原因是SimDRC虽然使用了[EOU]作为句向量，本质上还是学习到了一个更合理的word embedding，更利于生成类任务，而Response Selection本质作为句子匹配任务，更强调sentence embedding，本文无差别地推开同一个session内外的句子embedding可能不合理，可以尝试拉近同一个session内的sentence embedding，而推开不同session间的sentence embedding，</li>
-<li>SimDRC作用在response selection中还有一个不合理之处是所提出的两个任务都直接作用的每个token和[EOU]的特征分布上，但最终仍然使用[CLS]完成RS任务，使用[EOU]似乎是更合理的选择。</li>
+<li>文章创新地提出了context-context这种乍一看不太靠谱的匹配方式，非常新鲜。使用了知识蒸馏来增强双塔模型的效果，算是双塔文本匹配模型的常用套路了</li>
+<li>对我的启发主要有二，首先是文章点名了和一般的文本匹配任务不同，对话中context和response之间充电关键字少，所以直接借鉴IR那的匹配方式是不合理的，为dialogue制定检索方式是有必要的，二除了人工测试之外，用生成式对话系统的评价方式来测试coarse-grained RS不失为一个公平的方法</li>
 </ul>
-<h1 id="📄"><a href="#📄" class="headerlink" title="📄"></a>📄</h1><p><img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829150311.png"></p>
-<h1 id="🔗：https-arxiv-org-pdf-2205-14583-pdf"><a href="#🔗：https-arxiv-org-pdf-2205-14583-pdf" class="headerlink" title="🔗：https://arxiv.org/pdf/2205.14583.pdf"></a>🔗：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2205.14583.pdf">https://arxiv.org/pdf/2205.14583.pdf</a></h1><h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><ul>
-<li><p>好的文本特征向量分布应该满足两个性质</p>
-<ul>
-<li>Alignment：语义相似特征向量距离近</li>
-<li>Uniformity：特征向量在空间分布均匀</li>
+<h1 id="📄"><a href="#📄" class="headerlink" title="📄"></a>📄</h1><p>![image-20220829200711953](&#x2F;Users&#x2F;tengtaosong&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;image-20220829200711953.png)</p>
+<p>ACL2022</p>
+<h1 id="🔗：https-arxiv-org-pdf-2109-13087-pdf"><a href="#🔗：https-arxiv-org-pdf-2109-13087-pdf" class="headerlink" title="🔗：https://arxiv.org/pdf/2109.13087.pdf"></a>🔗：<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2109.13087.pdf">https://arxiv.org/pdf/2109.13087.pdf</a></h1><h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><ul>
+<li>和一般的文本匹配任务不同，对话中的context和response之间重叠的关键字可能很少见，这使得很难将context查询与候选response直接匹配</li>
+<li>细粒度的回复选择效果高度依赖粗粒度回复选择结果的质量</li>
+<li>与细粒度回复选择相比，粗粒度回复选择处理的候选者数量要多得多，计算量大。因此，即使很多研究已经证明基于交互的模型具有更高的精确度，用细粒度响应常用的交互模型来联合处理context查询和海量的response不切实际</li>
 </ul>
-</li>
-<li><p>表现在对话文本数据上可以概括为</p>
-<ul>
-<li>Locality：utterance内的token表达同一中心思想，token embedding相似度高，在特征空间中的分布贴近</li>
-<li>Isotropy：utterance间的token表达不同中心思想，token embedding相似度低，均匀地分布在特征空间</li>
-</ul>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829184017.png" style="zoom:60%;" /></li>
-</ul>
-<h1 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h1><ul>
-<li><p>文章提出了对两个Distance作为约束以增强对话文本表征的Locality和Isotropy。</p>
-</li>
-<li><p>Locality Distance：</p>
-<ul>
-<li><p>用每个句子结尾的[EOU]作为整个句子的表征，locality_value为句子中token与[EOU]的余弦距离，作为locality程度的表征</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829185919.png" style="zoom:50%;" />
-</li>
-<li><p>整段对话所有token的locality_value和即为Locality Distance</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829185952.png" style="zoom:70%;" />
-</li>
-<li><p>拉近句子内token的表征向量与[EOU]表征向量的距离</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829191510.png" style="zoom:60%;" /></li>
-</ul>
-</li>
-<li><p>Isotropy Distance：</p>
-<ul>
-<li><p>同样用每个句子结尾的[EOU]作为整个句子的表征，Isotropy_value为句子与句子之间Isotropy程度的表征</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829191109.png" style="zoom:50%;" />
-</li>
-<li><p>整段对话各个句子之间的Isotropy_value即为Isotropy Distance</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829191141.png" style="zoom:50%;" />
-</li>
-<li><p>推开不同[EOU]的特征向量距离</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829191411.png" style="zoom:70%;" /></li>
-</ul>
-</li>
-<li><p>最终两个Loss按权重相加，值得注意的是Isotropy_value数量比locality_value少，为避免模型偏向locality feature的建模，实验会给Isotropy_Loss更高的权重</p>
-<img src="https://raw.githubusercontent.com/MonoTtSong/blog-images/master/20220829191718.png" style="zoom:60%;" /></li>
+<h1 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h1><h2 id="Contextual-Matching"><a href="#Contextual-Matching" class="headerlink" title="Contextual Matching"></a>Contextual Matching</h2><h2 id="Multi-Tower-Architecture"><a href="#Multi-Tower-Architecture" class="headerlink" title="Multi-Tower Architecture"></a>Multi-Tower Architecture</h2><h2 id="Distillation-from-One-Tower-Model"><a href="#Distillation-from-One-Tower-Model" class="headerlink" title="Distillation from One-Tower Model"></a>Distillation from One-Tower Model</h2><h1 id="Experiments"><a href="#Experiments" class="headerlink" title="Experiments"></a>Experiments</h1><ul>
+<li>作者构建了两个数据集，为筛选出有效对话并加快检索速度，限制context在5-128词，response在5-64词</li>
+<li>评价指标方面，对不存在gt的测试集，作者分别使用DialogueGPT-large（一个在147M段Reddit多轮对话中预训练出的语言模型）计算每个query和response的perplexity求平均，使用DialogueRPT（一个利用大规模Reddit人类反馈数据的对话响应排序预训练模型）计算每个query和response的correlation degree再求平均</li>
 </ul>
 
         </div>
@@ -278,7 +243,7 @@
                 
                     <p class="copyright-item">
                         <span>Permalink:</span>
-                        <span><a href="http://example.com/2022/08/13/cityU-Distance-RS/">http://example.com/2022/08/13/cityU-Distance-RS/</a></span>
+                        <span><a href="http://example.com/2022/08/12/Fine-to-Coarse-Distillation/">http://example.com/2022/08/12/Fine-to-Coarse-Distillation/</a></span>
                     </p>
                 
                 
@@ -304,6 +269,10 @@
                     
                         <a href="/tags/Response-Selection/"># Response Selection</a>
                     
+                        <a href="/tags/Distillation/"># Distillation</a>
+                    
+                        <a href="/tags/Dense-Retrieval/"># Dense Retrieval</a>
+                    
                         
                 </span>
             </div>
@@ -315,8 +284,10 @@
         </section>
         <section class="post-nav">
             
+                <a class="prev" rel="prev" href="/2022/08/13/cityU-Distance-RS/">Learning Locality and Isotropy in Dialogue Modeling 笔记</a>
             
-            <a class="next" rel="next" href="/2022/08/12/Fine-to-Coarse-Distillation/">Contextual Fine-to-Coarse Distillation for Coarse-grained Response Selection in Open-Domain Conversations 笔记</a>
+            
+            <a class="next" rel="next" href="/2022/08/11/Adversarial-Training-Cross-Domain-RS/">Unsupervised Cross-Domain Adaptation for Response Selection Using Self-Supervised and Adversarial Training 笔记</a>
             
         </section>
 
